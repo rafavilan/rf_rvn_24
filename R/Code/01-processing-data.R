@@ -2,42 +2,45 @@
 # 01. Data processing
 
 ### Libraries
-# library(haven)
-# library(dplyr)
-# library(tidyr)
-# library(stringr)
-# library(labelled)
+library(haven)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(labelled)
 
 ### Loading data ----
-
 # Load the dataset
-data_path <- "ADD-YOUR-PATH"
+
+data_path <- "C:/Users/wb606690/Downloads/DataWork/DataWork/Data/"
 data      <- read_dta(file.path(data_path, "Raw/TZA_CCT_baseline.dta"))
 
 ### Remove duplicates based on hhid
 data_dedup <- data %>%
-    ......
+    distinct(hhid, .keep_all = TRUE)
 
 ### Household (HH) level data ----
 
 #### Tidying data for HH level
 data_tidy_hh <- data_dedup %>%
-    ......
+    select(vid, hhid, enid, floor:n_elder, food_cons:submissionday)
 
 ### Data cleaning for Household-member (HH-member) level
 data_clean_hh <- data_tidy_hh %>%
     # Convert submissionday to date
-    mutate(...... = as.Date(......, format = "%Y-%m-%d %H:%M:%S")) %>%
+    mutate(submissiondate = as.Date(submissionday, format = "%Y-%m-%d %H:%M:%S")) %>%
     # Convert duration to numeric (if it is not already)
-    mutate(......) %>%
+    mutate(duration = as.numeric(duration)) %>%
     # Convert ar_farm_unit to factor (categorical data)
-    mutate(......) %>%
+    mutate(ar_unit = as.factor(ar_farm_unit)) %>%
+    mutate(ar_unit = na_if(ar_unit, "")) %>%
     # Replace values in the crop variable based on crop_other using regex for new crops
     mutate(crop = case_when(
-        ......
+        str_detect(crop_other, "Coconut") ~ 40,
+        str_detect(crop_other, "Sesame") ~ 41,
+        TRUE ~ crop
     )) %>%
     # Recode negative numeric values (-88) as missing (NA)
-    mutate(across(......)) %>%
+    mutate(across()) %>%
     # Add variable labels
     set_variable_labels(
         ......
@@ -73,9 +76,9 @@ secondary_data <- read.csv(file.path(data_path, "Raw/TZA_amenity.csv"))
 
 # Tidying data
 secondary_data <- secondary_data %>%
-    pivot_wider(names_from = ......,
-                values_from = ......,
-                names_prefix = ......)
+    pivot_wider(names_from = amenity,
+                values_from = n,
+                names_prefix = "")
 
 # Save the final tidy secondary data
 write_dta(secondary_data, file.path(data_path, "Intermediate/TZA_amenity_tidy.dta"))
