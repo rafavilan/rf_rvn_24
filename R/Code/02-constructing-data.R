@@ -2,6 +2,8 @@
 # 02. Data construction
 # RRF - 2024 - Construction
 
+data_path <- "C:/Users/wb606690/Downloads/DataWork/DataWork/Data/"
+
 # Preliminary - Load Data ----
 # Load household-level data (HH)
 hh_data <- read_dta(file.path(data_path, "Intermediate/TZA_CCT_HH.dta"))
@@ -24,13 +26,27 @@ secondary_data <- read_dta(file.path(data_path, "Intermediate/TZA_amenity_tidy.d
 
 # Exercise 2: Standardize conversion values ----
 # Define standardized conversion values:
-# 1. Conversion factor for acres.
-# 2. USD conversion factor.
+acre_conv <- 2.47 # 1. Conversion factor for acres.
+usd <- 0.00037 # 2. USD conversion factor.
+
 
 # Data construction: Household (HH) ----
 # Instructions:
 # 1. Convert farming area to acres where necessary.
+hh_data <- hh_data %>%
+    mutate(area_acre = case_when(
+        ar_unit == 1 ~ ar_farm,
+        ar_unit == 2 ~ ar_farm * acre_conv
+    )) %>%
+    mutate(area_acre = replace_na(area_acre, 0)) %>%
+    set_variable_labels(area_acre = "Area farmed in acres")
+
 # 2. Convert household consumption for food and nonfood into USD.
+
+hh_data <- hh_data %>%
+    mutate(across(c(food_cons, nonfood_cons),
+                  ~  .x * usd,
+                  .names = "{.col}_usd"))
 
 # Exercise 3: Handle outliers ----
 # you can use custom Winsorization function to handle outliers.
@@ -57,6 +73,18 @@ winsor_function <- function(dataset, var, min = 0.00, max = 0.95) {
 
 # Tips: Apply the Winsorization function to the relevant variables.
 # Create a list of variables that require Winsorization and apply the function to each.
+win_vars <- c("area_acre", "food_cons_usd", "nonfood_cons_usd")
+
+#Apply
+for (var in win_vars) {
+    hh_data <- winsor_function(hh_data, var)
+}
+
+# Update the labels for the windsorization
+hh_data <- hh_data %>%
+    mutate(across(ends_with("_w"),
+                  ~ labelled(.x, label = paste0(attr(.x, "label"),
+                                                " (Windsorized 0.05)"))))
 
 # Exercise 4.1: Create indicators at household level ----
 # Instructions:
@@ -67,10 +95,42 @@ winsor_function <- function(dataset, var, min = 0.00, max = 0.95) {
 # 3. Average sick days.
 # 4. Total treatment cost in USD.
 
+hh_data_agg <- mem_data %>%
+    group_by(hhid) %>%
+    summarise(sick_h = max(sick, na.rm = TRUE),
+              read_h = max(read, na.rm = TRUE),
+              days_sick = if_else(all(is.na(days_sick)), NA_real_, mean(days_sick, na.rm = TRUE)),
+              treat_cost_usd = if_else(all(is.na(treat_cost)), NA_real_, mean(treat_cost, na.rm = TRUE))* usd
+              ) %>%
+    ungroup() %>%
+    mutate(treat_cost_usd = ifelse(is.na(treat_cost_usd),
+                                   mean(treat_cost_usd, na.rm = TRUE),
+                                   treat_cost_usd))
+
+set_value_labels()
+    
+
+hh_data <- hh_data %>% left_join(hh_data_agg, by = "hhid")
+
 # Exercise 4.2: Data construction: Secondary data ----
 # Instructions:
 # Calculate the total number of medical facilities by summing relevant columns.
 # Apply appropriate labels to the new variables created.
+
+secondary_data <- secondary_data %>%
+    mutate(total_health_facilities = rowSums(across(c(hospital, clinic)), na.rm = TRUE))
+
+    
+    group_by(hhid) %>%
+    summarise(sick_h = max(sick, na.rm = TRUE),
+              read_h = max(read, na.rm = TRUE),
+              days_sick = if_else(all(is.na(days_sick)), NA_real_, mean(days_sick, na.rm = TRUE)),
+              treat_cost_usd = if_else(all(is.na(treat_cost)), NA_real_, mean(treat_cost, na.rm = TRUE))* usd
+    ) %>%
+    ungroup() %>%
+    mutate(treat_cost_usd = ifelse(is.na(treat_cost_usd),
+                                   mean(treat_cost_usd, na.rm = TRUE),
+                                   treat_cost_usd))
 
 # Exercise 5: Merge HH and HH-member data ----
 # Instructions:
