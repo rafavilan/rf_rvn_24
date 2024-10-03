@@ -26,7 +26,6 @@ library(RColorBrewer) # color palettes
 # is already being handled by the rstudio project.
 
 data_path <- "your path here"
-data_path <- "C:/Users/wb606690/Downloads/DataWork/DataWork/Data/"
 
 # Run the R scripts ----
 a <- Sys.time()
