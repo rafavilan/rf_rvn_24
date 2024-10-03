@@ -1,14 +1,5 @@
 # Reproducible Research Fundamentals 
 # 03. Data Analysis
-
-# Libraries
-library(haven)
-library(dplyr)
-library(modelsummary)
-library(stargazer)
-library(ggplot2)
-library(tidyr)
-
 # Load data 
 # Load data 
 #household level data
@@ -104,7 +95,7 @@ ggplot(hh_data_plot, aes(x = treatment, y = area_acre_w, fill = treatment)) +
           axis.ticks.x = element_blank()) +  # Remove x-axis ticks
     guides(fill = guide_legend(reverse = TRUE)) 
 
-ggsave(file.path("Outputs", "fig1.png"), width = 10, height = 6)
+ggsave(file.path("Outputs", "fig1.pdf"), width = 10, height = 6)
 
 
 # Graphs: Distribution of non-food consumption by female-headed households ----
@@ -139,7 +130,7 @@ ggplot(hh_data, aes(x = nonfood_cons_usd_w, color = factor(female_head))) +
     annotate("text", x = mean_male, y = 0.01, label = paste("Mean (Male):", round(mean_male, 1)), color = "grey", hjust = 1.1) +
     annotate("text", x = 50, y = 0.022, label = "Dashed line represents the average non-food consumption", size = 3, hjust = 0)
 
-ggsave(file.path("Outputs", "fig2.png"), width = 10, height = 6)
+ggsave(file.path("Outputs", "fig2.pdf"), width = 10, height = 6)
 
 # Graphs: Secondary data ----
 
@@ -163,4 +154,4 @@ ggplot(long_data, aes(x = reorder(district, count), y = count, fill = in_sample)
           strip.text = element_text(size = 14),  # Adjust facet labels
           legend.position = "bottom")
 
-ggsave(file.path("Outputs", "fig3.png"), width = 10, height = 6)
+ggsave(file.path("Outputs", "fig3.pdf"), width = 10, height = 6)

@@ -16,13 +16,27 @@ library(modelsummary) # creating summary tables
 library(stargazer) # writing nice tables
 library(RColorBrewer) # color palettes
 
+# Recover environment ---- 
+# Only run in the first time 
+# renv::restore()
+
 # Set data path ----
 
 # this is the second root of the project, the first root is the code whose directory 
 # is already being handled by the rstudio project.
 
-data_path <- "the path for your data"
+data_path <- "your path here"
+data_path <- "C:/Users/wb606690/Downloads/DataWork/DataWork/Data/"
 
 # Run the R scripts ----
+a <- Sys.time()
+# Clean Data
+source("Code/01-processing-data.R")
 
-source("the path of your scripts")
+# Construction
+source("Code/02-constructing-data.R")
+
+# Analyses
+source("Code/03-analyzing-data.R")
+
+print(paste0("Time:", Sys.time() - a)) 
