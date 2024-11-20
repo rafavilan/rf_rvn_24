@@ -2,7 +2,6 @@
 # 02. Data construction
 # RRF - 2024 - Construction
 
-data_path <- "C:/Users/wb606690/Downloads/DataWork/DataWork/Data/"
 
 # Preliminary - Load data
 # Load HH data
